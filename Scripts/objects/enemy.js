@@ -10,9 +10,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 /*
     Name : Dongwan Kim
-    Version : v1.0
-    Last_modification : Feb 23, 2018
-    Description : Added Enemy objects
+    Version : v1.1
+    Last_modification : Feb 26, 2018
+    Description : Set the visibility when they reset
 */
 var objects;
 (function (objects) {

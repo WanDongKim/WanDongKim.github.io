@@ -9,10 +9,10 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 /*
-    Name : Jowon Shin
-    Version : v1.0
+    Name : Jowon Shin, Dongwan Kim
+    Version : v1.1
     Last_modification : Feb 26, 2018
-    Description : Created Star Object
+    Description : Set the visibility when they reset
 */
 var objects;
 (function (objects) {

@@ -1,8 +1,8 @@
 /*
     Name : Dongwan Kim, Changmin Shin, Jowon Shin
-    Version : v2.1
+    Version : v2.2
     Last_modification : Feb 26, 2018
-    Description : Created Star Object
+    Description : Changed the visibility options of enemy and star
 */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -60,10 +60,10 @@ var scenes;
             }
             this._enemy.forEach(function (enemy) {
                 enemy.Update();
+                _this._collision.check(_this._plane, enemy);
                 if (enemy.isColliding) {
                     enemy.visible = false;
                 }
-                _this._collision.check(_this._plane, enemy);
                 if (_this._plane.Life == 0) {
                     objects.Game.currentScene = config.Scene.GAMEOVER;
                     _this._backgroundSound.stop();
@@ -86,7 +86,6 @@ var scenes;
             this.addChild(this._background);
             this.addChild(this._star);
             for (var count = 0; count < this._missileNum; count++) {
-                //console.log("missile shooting");
                 this._missile[count] = new objects.Missile(this.assetManager);
                 this.addChild(this._missile[count]);
                 this._bulletFire(count * 80);
