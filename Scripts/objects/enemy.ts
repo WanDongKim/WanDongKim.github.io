@@ -26,6 +26,7 @@ module objects{
             this.Reset();
         }
         public Reset():void{
+            this.visible = true;
             this.x = (Math.random() * (640 - this.width)) + this.centerX;
             this.y = -this.height;
             this._dx = (Math.random() * -4) +2;

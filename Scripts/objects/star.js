@@ -40,6 +40,7 @@ var objects;
         };
         // reset the objects location to some value
         Star.prototype.Reset = function () {
+            this.visible = true;
             this.x = Math.floor((Math.random() * (640 - this.width)) + this.centerY);
             this.y = -this.height;
         };

@@ -55,8 +55,14 @@ var scenes;
             this._star.Update();
             //check collision between plane and star
             this._collision.check(this._plane, this._star);
+            if (this._star.isColliding) {
+                this._star.visible = false;
+            }
             this._enemy.forEach(function (enemy) {
                 enemy.Update();
+                if (enemy.isColliding) {
+                    enemy.visible = false;
+                }
                 _this._collision.check(_this._plane, enemy);
                 if (_this._plane.Life == 0) {
                     objects.Game.currentScene = config.Scene.GAMEOVER;
@@ -68,7 +74,6 @@ var scenes;
                 missile.position.x = _this._plane.x;
                 missile.position.y = _this._plane.y;
                 missile.Update();
-                console.log(missile.position.x);
             });
             if (this._scoreBoard.Lives <= 0) {
                 objects.Game.currentScene = config.Scene.GAMEOVER;
@@ -94,13 +99,11 @@ var scenes;
             this.addChild(this._scoreBoard.ScoreLabel);
         };
         playScene.prototype._bulletFire = function (back) {
-            //console.log(this._missileCount);
             this._missile[this._missileCount].x = objects.Game.stage.mouseX;
             this._missile[this._missileCount].y = objects.Game.stage.mouseY - back;
             this._missileCount++;
             if (this._missileCount >= this._missileNum - 1) {
                 this._missileCount = 0;
-                //createjs.Sound.play("missileSound");
                 this._missileSound = createjs.Sound.play("missileSound");
                 this._missileSound.loop = -1;
                 this._missileSound.volume = 0.2;

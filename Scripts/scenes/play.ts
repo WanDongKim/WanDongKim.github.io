@@ -67,9 +67,15 @@ module scenes {
 
             //check collision between plane and star
             this._collision.check(this._plane, this._star);
-
+            if(this._star.isColliding){
+                this._star.visible = false;
+            }
             this._enemy.forEach(enemy => {
                 enemy.Update();
+                if(enemy.isColliding){
+                    enemy.visible = false;
+                }
+                
 
                 this._collision.check(this._plane, enemy);
 
@@ -84,7 +90,6 @@ module scenes {
                 missile.position.x = this._plane.x;
                 missile.position.y = this._plane.y;
                 missile.Update();
-                console.log(missile.position.x);
             });
 
             if (this._scoreBoard.Lives <= 0) {
@@ -107,7 +112,7 @@ module scenes {
             }
 
             this.addChild(this._plane);
-
+            
             this._enemy.forEach(enemy => {
                 this.addChild(enemy);
             });
@@ -117,14 +122,12 @@ module scenes {
         }
 
         private _bulletFire(back: number): void {
-            //console.log(this._missileCount);
             this._missile[this._missileCount].x = objects.Game.stage.mouseX;
             this._missile[this._missileCount].y = objects.Game.stage.mouseY - back;
 
             this._missileCount++;
             if (this._missileCount >= this._missileNum - 1) {
                 this._missileCount = 0;
-                //createjs.Sound.play("missileSound");
                 this._missileSound = createjs.Sound.play("missileSound");
                 this._missileSound.loop = -1;
                 this._missileSound.volume = 0.2;
