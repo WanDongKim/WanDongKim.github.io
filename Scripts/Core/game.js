@@ -15,10 +15,10 @@
     var currentState;
     var keyBoardManager;
     assetManifest = [
-        { id: "btnStart", src: "./Assets/images/Start_button.png" },
-        { id: "background", src: "./Assets/images/background_temporary.png" },
-        { id: "btnNormal", src: "./Assets/images/normal_Button.png" },
-        { id: "btnHell", src: "./Assets/images/ULTIMATE_Button.png" },
+        { id: "btnStart", src: "./Assets/images/Start.png" },
+        { id: "background", src: "./Assets/images/background.png" },
+        { id: "btnNormal", src: "./Assets/images/btnNormal.png" },
+        { id: "btnHell", src: "./Assets/images/btnUltimate.png" },
         { id: "btnBack", src: "./Assets/images/btnBack.png" },
         { id: "btnPlayAgain", src: "./Assets/images/btnPlayAgain.png" },
         { id: "missile", src: "./Assets/images/missile.png" },
