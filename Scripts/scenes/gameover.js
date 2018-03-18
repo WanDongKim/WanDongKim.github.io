@@ -20,20 +20,20 @@ var scenes;
         __extends(GameOverScene, _super);
         //PUBLIC PROPERTIES
         //CONSTRUCTOR
-        function GameOverScene(assetManager) {
-            var _this = _super.call(this, assetManager) || this;
+        function GameOverScene() {
+            var _this = _super.call(this) || this;
             _this.Start();
             return _this;
         }
         //PRIVATE METHODS
         GameOverScene.prototype._btnPlayAgainClick = function () {
-            objects.Game.currentScene = config.Scene.OPENING;
+            managers.Game.currentScene = config.Scene.OPENING;
         };
         //PUBLIC METHODS
         GameOverScene.prototype.Start = function () {
-            this._btnPlayAgain = new objects.Button(this.assetManager, "btnPlayAgain", 320, 360);
-            this._lblGameOver = new objects.Label("Game Over", "40px", "Consolas", "#FF0000", 320, 240, true);
-            this._lblScore = new objects.Label("High Score: ", "40px", "Consolas", "#FF0000", 150, 100, false);
+            this._btnPlayAgain = new objects.Button("btnPlayAgain", 320, 360);
+            this._lblGameOver = new objects.Label("Game Over", "40px", "SpaceComic", "#FF0000", 320, 240, true);
+            this._lblScore = new objects.Label("High Score: ", "40px", "SpaceComic", "#FF0000", 140, 120, false);
             this._scoreboard = new managers.ScoreBoard;
             this.Main();
             console.log("game over");
@@ -44,7 +44,7 @@ var scenes;
             createjs.Sound.play("tadaSound"); //must be changed
             this.addChild(this._lblGameOver);
             this.addChild(this._btnPlayAgain);
-            this._scoreboard.HighScore = objects.Game.HighScore;
+            this._scoreboard.HighScore = managers.Game.HighScore;
             this._lblScore.text += this._scoreboard.HighScore;
             this.addChild(this._lblScore);
             this._btnPlayAgain.on("click", this._btnPlayAgainClick);

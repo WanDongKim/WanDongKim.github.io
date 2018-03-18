@@ -1,8 +1,8 @@
 /*
     Name : Dongwan Kim, Changmin Shin, Jowon Shin
-    Version : v2.2
-    Last_modification : Feb 26, 2018
-    Description : Changed the visibility options of enemy and star
+    Version : v2.3
+    Last_modification : Mar 16, 2018
+    Description : Added Life Item and Set Success Condition
 */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -16,56 +16,72 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var scenes;
 (function (scenes) {
-    var playScene = /** @class */ (function (_super) {
-        __extends(playScene, _super);
+    var StageOneScene = /** @class */ (function (_super) {
+        __extends(StageOneScene, _super);
         //PUBLIC PROPERTIES
         //CONSTRUCTOR
-        function playScene(assetManager) {
-            var _this = _super.call(this, assetManager) || this;
+        function StageOneScene() {
+            var _this = _super.call(this) || this;
             _this.Start();
             return _this;
         }
         //PRIVATE METHODS
+        StageOneScene.prototype._bulletFire = function (back) {
+            this._missile[this._missileCount].x = managers.Game.stage.mouseX;
+            this._missile[this._missileCount].y = managers.Game.stage.mouseY - back;
+            this._missileCount++;
+            if (this._missileCount >= this._missileNum - 1) {
+                this._missileCount = 0;
+                this._missileSound = createjs.Sound.play("missileSound");
+                this._missileSound.loop = -1;
+                this._missileSound.volume = 0.2;
+            }
+        };
+        StageOneScene.prototype._sucessStage = function () {
+            if (this._scoreBoard.Score >= 3000) {
+                managers.Game.currentScene = config.Scene.PLAY_TWO;
+                this._backgroundSound.stop();
+                this._missileSound.stop();
+                //TODO: Build a new scene ? or display a congratulation label?
+            }
+        };
         //PUBLIC METHODS
-        playScene.prototype.Start = function () {
+        StageOneScene.prototype.Start = function () {
             this._missileNum = 5;
             this._missileCount = 0;
             this._background = new objects.Background(this.assetManager);
-            this._plane = new objects.Plane(this.assetManager);
-            this._star = new objects.Star(this.assetManager);
+            this._plane = new objects.Plane();
+            this._star = new objects.Star();
+            this._lifeItem = new objects.LifeItem();
             this._enemyNum = 3;
             this._enemy = new Array();
             this._missile = new Array();
             this._bulletFire = this._bulletFire.bind(this);
             for (var count = 0; count < this._enemyNum; count++) {
-                this._enemy[count] = new objects.Enemy(this.assetManager);
+                this._enemy[count] = new objects.Enemy();
             }
-            this._collision = new managers.Collision();
             this._backgroundSound = createjs.Sound.play("backgroundSound");
             this._backgroundSound.loop = -1;
             this._backgroundSound.volume = 0.5;
             this._scoreBoard = new managers.ScoreBoard;
-            objects.Game.scoreboardManager = this._scoreBoard;
+            managers.Game.scoreboardManager = this._scoreBoard;
             this.Main();
         };
-        playScene.prototype.Update = function () {
+        StageOneScene.prototype.Update = function () {
             var _this = this;
             this._background.Update();
             this._plane.Update();
             this._star.Update();
+            this._lifeItem.Update();
             //check collision between plane and star
-            this._collision.check(this._plane, this._star);
-            if (this._star.isColliding) {
-                this._star.visible = false;
-            }
+            managers.Collision.Check(this._plane, this._star);
+            //check collision between plane and a life item
+            managers.Collision.Check(this._plane, this._lifeItem);
             this._enemy.forEach(function (enemy) {
                 enemy.Update();
-                _this._collision.check(_this._plane, enemy);
-                if (enemy.isColliding) {
-                    enemy.visible = false;
-                }
+                managers.Collision.Check(_this._plane, enemy);
                 if (_this._plane.Life == 0) {
-                    objects.Game.currentScene = config.Scene.GAMEOVER;
+                    managers.Game.currentScene = config.Scene.GAMEOVER;
                     _this._backgroundSound.stop();
                     _this._missileSound.stop();
                 }
@@ -75,18 +91,21 @@ var scenes;
                 missile.position.y = _this._plane.y;
                 missile.Update();
             });
+            managers.Collision.Crush(this._missile, this._enemy);
             if (this._scoreBoard.Lives <= 0) {
-                objects.Game.currentScene = config.Scene.GAMEOVER;
+                managers.Game.currentScene = config.Scene.GAMEOVER;
                 this._backgroundSound.stop();
                 this._missileSound.stop();
             }
+            this._sucessStage();
         };
-        playScene.prototype.Main = function () {
+        StageOneScene.prototype.Main = function () {
             var _this = this;
             this.addChild(this._background);
             this.addChild(this._star);
+            this.addChild(this._lifeItem);
             for (var count = 0; count < this._missileNum; count++) {
-                this._missile[count] = new objects.Missile(this.assetManager);
+                this._missile[count] = new objects.Missile();
                 this.addChild(this._missile[count]);
                 this._bulletFire(count * 80);
             }
@@ -97,19 +116,8 @@ var scenes;
             this.addChild(this._scoreBoard.LivesLabel);
             this.addChild(this._scoreBoard.ScoreLabel);
         };
-        playScene.prototype._bulletFire = function (back) {
-            this._missile[this._missileCount].x = objects.Game.stage.mouseX;
-            this._missile[this._missileCount].y = objects.Game.stage.mouseY - back;
-            this._missileCount++;
-            if (this._missileCount >= this._missileNum - 1) {
-                this._missileCount = 0;
-                this._missileSound = createjs.Sound.play("missileSound");
-                this._missileSound.loop = -1;
-                this._missileSound.volume = 0.2;
-            }
-        };
-        return playScene;
+        return StageOneScene;
     }(objects.Scene));
-    scenes.playScene = playScene;
+    scenes.StageOneScene = StageOneScene;
 })(scenes || (scenes = {}));
-//# sourceMappingURL=play.js.map
+//# sourceMappingURL=play_one.js.map

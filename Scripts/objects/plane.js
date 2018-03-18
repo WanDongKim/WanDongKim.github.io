@@ -10,22 +10,23 @@ var __extends = (this && this.__extends) || (function () {
 })();
 /*
     Name : Dongwan Kim
-    Version : v1.2
-    Last_modification : Feb 25, 2018
-    Description : Added keyboard control to move the plane
+    Version : v1.3
+    Last_modification : Mar 16 2018
+    Description : Deleted life private variable and connected with gameobject life
 */
 var objects;
 (function (objects) {
     var Plane = /** @class */ (function (_super) {
         __extends(Plane, _super);
         //CONSTRUTOR
-        function Plane(assetManager) {
-            var _this = _super.call(this, assetManager, "plane") || this;
-            _this._life = 3;
+        function Plane() {
+            var _this = _super.call(this, "playerShip") || this;
+            _this.life = 3;
             _this.Start();
             return _this;
         }
         Object.defineProperty(Plane, "centerX", {
+            //PRIVATE VARIABLES
             //PUBLIC PROPERTIES
             get: function () {
                 return this.centerX;
@@ -42,7 +43,7 @@ var objects;
         });
         Object.defineProperty(Plane.prototype, "Life", {
             get: function () {
-                return this._life;
+                return this.life;
             },
             enumerable: true,
             configurable: true
@@ -66,16 +67,16 @@ var objects;
             }
         };
         Plane.prototype.Move = function () {
-            if (objects.Game.keyboardManager.moveLeft) {
+            if (managers.Game.keyboardManager.moveLeft) {
                 this.x -= 10;
             }
-            if (objects.Game.keyboardManager.moveRight) {
+            if (managers.Game.keyboardManager.moveRight) {
                 this.x += 10;
             }
-            if (objects.Game.keyboardManager.moveForward) {
+            if (managers.Game.keyboardManager.moveForward) {
                 this.y += 10;
             }
-            if (objects.Game.keyboardManager.moveBackward) {
+            if (managers.Game.keyboardManager.moveBackward) {
                 this.y -= 10;
             }
         };
@@ -84,12 +85,9 @@ var objects;
             this.y = 430;
         };
         Plane.prototype.Update = function () {
-            this.position = new objects.Vector2(this.x, this.y);
+            this.position = new math.Vector2(this.x, this.y);
             this.Move();
             this.CheckBounds();
-        };
-        Plane.prototype.MinusLife = function () {
-            this._life -= 1;
         };
         return Plane;
     }(objects.GameObject));

@@ -1,19 +1,19 @@
 /*
     Name : Dongwan Kim
-    Version : v1.1
-    Last_modification : Feb 26, 2018
-    Description : Set the visibility when they reset
+    Version : v1.2
+    Last_modification : Mar 16, 2018
+    Description : Added life value
 */
 module objects{
     export class Enemy extends GameObject{
         //PRIVATE VARIABLES
-
         //PUBLIC PROPERTIES
 
         //CONSTRUCTORS
-        constructor(assetManager:createjs.LoadQueue){
-            super(assetManager,"enemy");
+        constructor(){
+            super("enemyA");
             this.Start();
+            this.life=1;
         }
         //PRIVATE METHODS
 
@@ -26,7 +26,7 @@ module objects{
             this.Reset();
         }
         public Reset():void{
-            this.visible = true;
+            this.alpha = 1;
             this.x = (Math.random() * (640 - this.width)) + this.centerX;
             this.y = -this.height;
             this._dx = (Math.random() * -4) +2;
@@ -39,7 +39,7 @@ module objects{
             }
         }
         public Update():void{
-            this.position = new Vector2(this.x, this.y);
+            this.position = new math.Vector2(this.x, this.y);
 
             this.Move();
             this.CheckBounds();

@@ -10,9 +10,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 /*
     Name : Dongwan Kim
-    Version : v1.1
-    Last_modification : Feb 26, 2018
-    Description : Set the visibility when they reset
+    Version : v1.2
+    Last_modification : Mar 16, 2018
+    Description : Added life value
 */
 var objects;
 (function (objects) {
@@ -21,9 +21,10 @@ var objects;
         //PRIVATE VARIABLES
         //PUBLIC PROPERTIES
         //CONSTRUCTORS
-        function Enemy(assetManager) {
-            var _this = _super.call(this, assetManager, "enemy") || this;
+        function Enemy() {
+            var _this = _super.call(this, "enemyA") || this;
             _this.Start();
+            _this.life = 1;
             return _this;
         }
         //PRIVATE METHODS
@@ -36,7 +37,7 @@ var objects;
             this.Reset();
         };
         Enemy.prototype.Reset = function () {
-            this.visible = true;
+            this.alpha = 1;
             this.x = (Math.random() * (640 - this.width)) + this.centerX;
             this.y = -this.height;
             this._dx = (Math.random() * -4) + 2;
@@ -49,7 +50,7 @@ var objects;
             }
         };
         Enemy.prototype.Update = function () {
-            this.position = new objects.Vector2(this.x, this.y);
+            this.position = new math.Vector2(this.x, this.y);
             this.Move();
             this.CheckBounds();
         };

@@ -1,8 +1,8 @@
 /*
     Name : Dongwan Kim
-    Version : v1.0
-    Last_modification : Feb 21, 2018
-    Description : Created Gameobject object
+    Version : v1.1
+    Last_modification : Mar 16, 2018
+    Description : Added life property
 */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -19,14 +19,24 @@ var objects;
     var GameObject = /** @class */ (function (_super) {
         __extends(GameObject, _super);
         //CONSTRUTORS
-        function GameObject(assetManager, imageString) {
-            var _this = _super.call(this, assetManager.getResult(imageString)) || this;
+        function GameObject(imageString) {
+            var _this = _super.call(this, managers.Game.textureAtlas, imageString) || this;
             _this.name = imageString;
             _this._init();
             return _this;
         }
-        Object.defineProperty(GameObject.prototype, "name", {
+        Object.defineProperty(GameObject.prototype, "Dy", {
             //public position:createjs.Point;
+            get: function () {
+                return this._dy;
+            },
+            set: function (_dy) {
+                this._dy = _dy;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(GameObject.prototype, "name", {
             get: function () {
                 return this._name;
             },
@@ -56,6 +66,16 @@ var objects;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(GameObject.prototype, "life", {
+            get: function () {
+                return this._life;
+            },
+            set: function (newLife) {
+                this._life = newLife;
+            },
+            enumerable: true,
+            configurable: true
+        });
         //PRIVATE METHODS
         GameObject.prototype._init = function () {
             this.width = this.getBounds().width;
@@ -64,9 +84,9 @@ var objects;
             this.centerY = this.height * 0.5;
             this.regX = this.centerX;
             this.regY = this.centerY;
-            //this.position = new createjs.Point(this.x,this.y);
-            this.position = new objects.Vector2(this.x, this.y);
+            this.position = new math.Vector2(this.x, this.y);
             this.isColliding = false;
+            this.Life = this._life;
         };
         //PUBLIC METHODS
         GameObject.prototype.Reset = function () {
@@ -80,7 +100,7 @@ var objects;
         GameObject.prototype.Update = function () {
         };
         return GameObject;
-    }(createjs.Bitmap));
+    }(createjs.Sprite));
     objects.GameObject = GameObject;
 })(objects || (objects = {}));
 //# sourceMappingURL=gameobject.js.map

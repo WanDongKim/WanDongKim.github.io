@@ -6,9 +6,11 @@
 */
 module config{
     export enum Scene{
+        LOADING,
         OPENING,
         CHOOSEMODE,
-        PLAY,
+        PLAY_ONE,
+        PLAY_TWO,
         GAMEOVER
     }
 }

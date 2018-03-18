@@ -21,8 +21,8 @@ var objects;
         // private instance variables
         // public properties
         // Constructor
-        function Star(assetManager) {
-            var _this = _super.call(this, assetManager, "star") || this;
+        function Star() {
+            var _this = _super.call(this, "star") || this;
             _this.Start();
             return _this;
         }
@@ -40,13 +40,13 @@ var objects;
         };
         // reset the objects location to some value
         Star.prototype.Reset = function () {
-            this.visible = true;
+            this.alpha = 1;
             this.x = Math.floor((Math.random() * (640 - this.width)) + this.centerY);
             this.y = -this.height;
         };
         // move the object to some new location
         Star.prototype.Move = function () {
-            this.position = new objects.Vector2(this.x, this.y);
+            this.position = new math.Vector2(this.x, this.y);
             this.y += this._dy;
         };
         // check to see if some boundary has been passed

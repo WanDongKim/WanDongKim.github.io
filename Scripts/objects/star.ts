@@ -12,8 +12,8 @@ module objects {
     // public properties
 
     // Constructor
-    constructor(assetManager: createjs.LoadQueue) {
-      super(assetManager, "star");
+    constructor() {
+      super("star");
       this.Start();
     }
 
@@ -35,14 +35,14 @@ module objects {
 
     // reset the objects location to some value
     public Reset(): void {
-      this.visible = true;
+      this.alpha = 1;
       this.x = Math.floor((Math.random() * (640 - this.width)) + this.centerY);
       this.y = -this.height;
     }
 
     // move the object to some new location
     public Move(): void {
-      this.position = new Vector2(this.x, this.y);
+      this.position = new math.Vector2(this.x, this.y);
       this.y += this._dy;
     }
 

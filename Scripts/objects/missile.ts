@@ -11,14 +11,15 @@ module objects{
         //PUBLIC PROPERTIES
 
         //CONSTRUTOR
-        constructor(assetManager:createjs.LoadQueue){
-           super(assetManager,"missile");    
+        constructor(){
+           super("missile");    
 
             this.Start();
        }
         //PRIVATE METHODS
         private _reset():void{
             //this.position = objects.Plane.getPosition;
+            this.visible = true;
             this.x = this.position.x;
             this.y = this.position.y;  
             //this.x = objects.Game.stage.mouseX;

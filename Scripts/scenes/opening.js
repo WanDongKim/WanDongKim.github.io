@@ -20,20 +20,21 @@ var scenes;
         __extends(openingScene, _super);
         //PUBLIC PROPERTIES
         //CONSTRUCTOR
-        function openingScene(assetManager) {
-            var _this = _super.call(this, assetManager) || this;
+        function openingScene() {
+            var _this = _super.call(this) || this;
             _this.Start();
             return _this;
         }
         //PRIVATE METHODS
         openingScene.prototype._btnStartClick = function () {
-            objects.Game.currentScene = config.Scene.CHOOSEMODE;
+            managers.Game.currentScene = config.Scene.CHOOSEMODE;
         };
         //PUBLIC METHODS
         openingScene.prototype.Start = function () {
             this._background = new objects.Background(this.assetManager);
-            this._openingLogo = new objects.Label("The Galaxy of the Guardians", "40px", "Consolas", "#FFFFFF", 25, 180);
-            this._btnStart = new objects.Button(this.assetManager, "btnStart", 320, 340);
+            this._logo = new objects.Logo(this.assetManager, "logo", 320, 220);
+            this._openingLogo = new objects.Label("The Galaxy of the Guardians", "30px", "SpaceComic", "#FFFFFF", 100, 310);
+            this._btnStart = new objects.Button("btnStart", 320, 390);
             this.Main();
             console.log("start");
         };
@@ -43,6 +44,7 @@ var scenes;
             this.addChild(this._background);
             this.addChild(this._openingLogo);
             this.addChild(this._btnStart);
+            this.addChild(this._logo);
             this._btnStart.on("click", this._btnStartClick);
         };
         return openingScene;

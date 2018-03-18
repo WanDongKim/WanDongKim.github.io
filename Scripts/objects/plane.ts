@@ -1,13 +1,12 @@
 /*
     Name : Dongwan Kim
-    Version : v1.2
-    Last_modification : Feb 25, 2018
-    Description : Added keyboard control to move the plane
+    Version : v1.3
+    Last_modification : Mar 16 2018
+    Description : Deleted life private variable and connected with gameobject life
 */
 module objects{
     export class Plane extends objects.GameObject {
         //PRIVATE VARIABLES
-            private _life:number;
         //PUBLIC PROPERTIES
             public static get centerX():number{
                 return this.centerX;
@@ -16,12 +15,12 @@ module objects{
                 return this.centerY;
             }
             public get Life():number{
-                return this._life;
+                return this.life;
             }
         //CONSTRUTOR
-        constructor(assetManager:createjs.LoadQueue){
-            super(assetManager,"plane");
-            this._life = 3;
+        constructor(){
+            super("playerShip");
+            this.life = 3;
             this.Start();
         }
         //PRIVATE METHODS
@@ -46,33 +45,29 @@ module objects{
         }
         public Move():void{
 
-            if(objects.Game.keyboardManager.moveLeft){
+            if(managers.Game.keyboardManager.moveLeft){
                 this.x -= 10;
             }
-            if(objects.Game.keyboardManager.moveRight){
+            if(managers.Game.keyboardManager.moveRight){
                 this.x += 10;
             }
-            if(objects.Game.keyboardManager.moveForward){
+            if(managers.Game.keyboardManager.moveForward){
                 this.y += 10;
             }
-            if(objects.Game.keyboardManager.moveBackward){
+            if(managers.Game.keyboardManager.moveBackward){
                 this.y -= 10;
             }
         }
         public Start():void{
             this.x = 300;
-            this.y=430;
+            this.y = 430;
         }
         public Update():void{
-            this.position = new Vector2(this.x, this.y);
+            this.position = new math.Vector2(this.x, this.y);
             this.Move();
             this.CheckBounds();
         }
         
-        public MinusLife():void{
-            this._life -= 1;
-        }
-
 
     }
 }

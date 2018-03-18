@@ -21,14 +21,15 @@ var objects;
         //PRIVATE VARIABLES
         //PUBLIC PROPERTIES
         //CONSTRUTOR
-        function Missile(assetManager) {
-            var _this = _super.call(this, assetManager, "missile") || this;
+        function Missile() {
+            var _this = _super.call(this, "missile") || this;
             _this.Start();
             return _this;
         }
         //PRIVATE METHODS
         Missile.prototype._reset = function () {
             //this.position = objects.Plane.getPosition;
+            this.visible = true;
             this.x = this.position.x;
             this.y = this.position.y;
             //this.x = objects.Game.stage.mouseX;
