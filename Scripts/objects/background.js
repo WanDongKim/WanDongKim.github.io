@@ -21,6 +21,17 @@ var objects;
         //CONSTRUCTOR
         function Background(assetManager) {
             var _this = _super.call(this, assetManager.getResult("background")) || this;
+            switch (managers.Game.currentScene) {
+                case config.Scene.PLAY_ONE:
+                    _this = _super.call(this, assetManager.getResult("background")) || this;
+                    break;
+                case config.Scene.PLAY_TWO:
+                    _this = _super.call(this, assetManager.getResult("background2")) || this;
+                    break;
+                case config.Scene.PLAY_THREE:
+                    _this = _super.call(this, assetManager.getResult("background3")) || this;
+                    break;
+            }
             _this.Start();
             return _this;
         }
@@ -37,7 +48,7 @@ var objects;
         });
         //PRIVATE METHODS
         Background.prototype._reset = function () {
-            this.y = -960;
+            this.y = -1000;
         };
         Background.prototype._checkBounds = function () {
             if (this.y >= 0) {
@@ -49,7 +60,7 @@ var objects;
         };
         //PUBLIC METHODS
         Background.prototype.Start = function () {
-            this._dy = 10;
+            this._dy = 1;
             this._reset();
         };
         Background.prototype.Update = function () {
