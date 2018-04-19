@@ -6,6 +6,8 @@
 */
 module managers {
     export class Collision {
+        //Properties
+        private _attackSound: createjs.AbstractSoundInstance;
         constructor() {
 
             this.start();
@@ -70,10 +72,29 @@ module managers {
                                         explosion.x = (other.x - 30) + Math.random()*50 ;
                                         explosion.y = other.centerY * Math.random();
                                         managers.Game.currentSceneObject.addChild(explosion);   
+                                        createjs.Sound.play("attackSound", {volume: 0.1});                                       
                                     }     
-     
-                                
+                                    break;
+                                case "playerShip":
+                                    if( (math.Vector2.distance(onePos, otherPos) < (one.centerY + other.centerY) - 30) ){
+                                        if(one.alpha != 0){
+                                            other.life -= 1;
+                                            managers.Game.scoreboardManager.Lives -= 1;
+                                            console.log(other.life);
+                                            console.log(one.width+ ","+ one.height);
+        
+                                            
+                                            createjs.Sound.play("crashSound");
+                                            one.alpha = 0;
+        
+                                            explosion = new objects.Explosion();
+                                            explosion.x = other.x;
+                                            explosion.y = other.y;
+                                            managers.Game.currentSceneObject.addChild(explosion);
+                                            }
+                                    } 
                                 break;
+
                             }
                         
                     }
@@ -98,14 +119,22 @@ module managers {
 
                                 if (!enemy[countE].isColliding) {
                                     enemy[countE].isColliding = true;
-                                    enemy[countE].alpha = 0;
                                     missile[countM].alpha = 0;
                                     //createjs.Sound.play("");  TODO: put proper sound
-                                    managers.Game.scoreboardManager.Score += 100;
+                                    enemy[countE].life -=1;
+
                                     let explosion = new objects.Explosion();
                                     explosion.x = enemy[countE].x;
                                     explosion.y = enemy[countE].y;
                                     managers.Game.currentSceneObject.addChild(explosion);
+                                    
+                                    if(enemy[countE].life == 0){
+                                        enemy[countE].alpha = 0;
+                                        managers.Game.scoreboardManager.Score += 100;
+                                        createjs.Sound.play("attackSound", {volume: 0.2});
+                                    }
+
+
                                 }
                             }
                         }

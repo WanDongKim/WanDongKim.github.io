@@ -9,6 +9,25 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 /*
+    Name : Dongwan Kim, Jowon Shin
+    Version : v1.4
+    Last_modification : Feb 23, 2018
+    Description : Added 3rd stage scene
+*/
+var config;
+(function (config) {
+    var Scene;
+    (function (Scene) {
+        Scene[Scene["LOADING"] = 0] = "LOADING";
+        Scene[Scene["OPENING"] = 1] = "OPENING";
+        Scene[Scene["CHOOSEMODE"] = 2] = "CHOOSEMODE";
+        Scene[Scene["PLAY_ONE"] = 3] = "PLAY_ONE";
+        Scene[Scene["PLAY_TWO"] = 4] = "PLAY_TWO";
+        Scene[Scene["PLAY_THREE"] = 5] = "PLAY_THREE";
+        Scene[Scene["GAMEOVER"] = 6] = "GAMEOVER";
+    })(Scene = config.Scene || (config.Scene = {}));
+})(config || (config = {}));
+/*
     Name : Dongwan Kim
     Version : v1.0
     Last_modification : Feb 25, 2018
@@ -32,28 +51,9 @@ var config;
 })(config || (config = {}));
 /*
     Name : Dongwan Kim, Jowon Shin
-    Version : v1.4
-    Last_modification : Feb 23, 2018
-    Description : Added 3rd stage scene
-*/
-var config;
-(function (config) {
-    var Scene;
-    (function (Scene) {
-        Scene[Scene["LOADING"] = 0] = "LOADING";
-        Scene[Scene["OPENING"] = 1] = "OPENING";
-        Scene[Scene["CHOOSEMODE"] = 2] = "CHOOSEMODE";
-        Scene[Scene["PLAY_ONE"] = 3] = "PLAY_ONE";
-        Scene[Scene["PLAY_TWO"] = 4] = "PLAY_TWO";
-        Scene[Scene["PLAY_THREE"] = 5] = "PLAY_THREE";
-        Scene[Scene["GAMEOVER"] = 6] = "GAMEOVER";
-    })(Scene = config.Scene || (config.Scene = {}));
-})(config || (config = {}));
-/*
-    Name : Dongwan Kim, Jowon Shin
-    Version : v1.5
-    Last_modification : Apr 06, 2018
-    Description : Added bullet manager
+    Version : v1.7
+    Last_modification : Apr 19, 2018
+    Description : Added mode selection value
 */
 var managers;
 (function (managers) {
@@ -148,8 +148,18 @@ var objects;
             _this._init();
             return _this;
         }
-        Object.defineProperty(GameObject.prototype, "Dy", {
+        Object.defineProperty(GameObject.prototype, "Dx", {
             //public position:createjs.Point;
+            get: function () {
+                return this._dx;
+            },
+            set: function (_dx) {
+                this._dx = _dx;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(GameObject.prototype, "Dy", {
             get: function () {
                 return this._dy;
             },
@@ -277,7 +287,10 @@ var objects;
             _this.x = x;
             _this.y = y;
             _this._boss = managers.Game.boss;
+            _this._bossMissile = managers.Game.BossBulletManager;
             _this._enemy = managers.Game.enemies;
+            _this._lifeItem = managers.Game.lifeitem;
+            _this._star = managers.Game.star;
             _this._scoreBoard = managers.Game.scoreboardManager;
             return _this;
         }
@@ -287,12 +300,20 @@ var objects;
         // updates the game object every frame
         Label.prototype.Update = function () {
             if (this._boss.alpha === 0) {
-                createjs.Sound.play("tada");
+                if (this.y < 480 && this.y > 300) {
+                    createjs.Sound.play("levelCompleteSound");
+                }
                 this.alpha = 1;
                 this.Move();
                 this._enemy.forEach(function (enemy) {
-                    managers.Game.currentSceneObject.removeChild(enemy);
+                    enemy.alpha = 0;
+                    //managers.Game.currentSceneObject.removeChild(enemy);
                 });
+                this._bossMissile.Missiles.forEach(function (missile) {
+                    missile.alpha = 0;
+                });
+                this._star.alpha = 0;
+                this._lifeItem.alpha = 0;
             }
             else {
                 this.alpha = 0;
@@ -492,7 +513,7 @@ var objects;
             this.BulletFire();
         };
         Plane.prototype.BulletFire = function () {
-            if (this.alpha = 1) {
+            if (this.alpha === 1) {
                 var ticker = createjs.Ticker.getTicks();
                 if (ticker % 10 == 0) {
                     this._missileSpawn = new math.Vector2(this.x, this.y - this.centerY);
@@ -562,21 +583,19 @@ var objects;
 })(objects || (objects = {}));
 /*
     Name : Dongwan Kim
-    Version : v1.2
-    Last_modification : Mar 16, 2018
-    Description : Added life value
+    Version : v1.4
+    Last_modification : Apr 19, 2018
+    Description : Added Enemies bullet
 */
 var objects;
 (function (objects) {
     var Enemy = /** @class */ (function (_super) {
         __extends(Enemy, _super);
-        //PRIVATE VARIABLES
         //PUBLIC PROPERTIES
         //CONSTRUCTORS
         function Enemy() {
             var _this = _super.call(this, "enemyA") || this;
             _this.Start();
-            _this.life = 1;
             return _this;
         }
         //PRIVATE METHODS
@@ -584,12 +603,15 @@ var objects;
         Enemy.prototype.Move = function () {
             this.x += this._dx;
             this.y += this._dy;
+            this.BulletFire();
         };
         Enemy.prototype.Start = function () {
             this.Reset();
+            this._missileSpawn = new math.Vector2();
         };
         Enemy.prototype.Reset = function () {
             this.alpha = 1;
+            this.life = 2;
             this.x = (Math.random() * (640 - this.width)) + this.centerX;
             this.y = -this.height;
             this._dx = (Math.random() * -4) + 2;
@@ -606,9 +628,73 @@ var objects;
             this.Move();
             this.CheckBounds();
         };
+        Enemy.prototype.BulletFire = function () {
+            if (this.alpha == 1) {
+                var ticker = createjs.Ticker.getTicks();
+                if (ticker % 60 == 0) {
+                    var enemies = managers.Game.enemies;
+                    var _missile = managers.Game.EnemyBulletManager.Missiles;
+                    for (var i = 0; i < enemies.length; i++) {
+                        if (enemies[i].alpha == 1) {
+                            this._missileSpawn = new math.Vector2(enemies[i].x, enemies[i].y);
+                            _missile[i].x = this._missileSpawn.x;
+                            _missile[i].y = this._missileSpawn.y;
+                            _missile[i].Dx = this._dx * 1.5;
+                            _missile[i].Dy = this._dy * 1.5;
+                            _missile[i].Update();
+                        }
+                    }
+                }
+            }
+        };
         return Enemy;
     }(objects.GameObject));
     objects.Enemy = Enemy;
+})(objects || (objects = {}));
+/*
+    Name : Dongwan Kim
+    Version : v1.1
+    Last_modification : Apr 19, 2018
+    Description : Change x, y values
+*/
+var objects;
+(function (objects) {
+    var Missile_Enemy = /** @class */ (function (_super) {
+        __extends(Missile_Enemy, _super);
+        //PRIVATE VARIABLES
+        //PUBLIC PROPERTIES
+        //CONSTRUTOR
+        function Missile_Enemy() {
+            var _this = _super.call(this, "bossmissileA") || this;
+            _this.Start();
+            return _this;
+        }
+        //PRIVATE METHODS
+        // //PUBLIC METHODS
+        Missile_Enemy.prototype.Start = function () {
+            this._dy = 10;
+            this._dx = 0;
+            this.Reset();
+        };
+        Missile_Enemy.prototype.Update = function () {
+            this.Move();
+            this.CheckBounds();
+        };
+        Missile_Enemy.prototype.Reset = function () {
+            this.x = -100;
+            this.y = -100;
+        };
+        Missile_Enemy.prototype.CheckBounds = function () {
+            if (this.y >= 480 + this.height) {
+                this.Reset();
+            }
+        };
+        Missile_Enemy.prototype.Move = function () {
+            this.y += this._dy;
+        };
+        return Missile_Enemy;
+    }(objects.GameObject));
+    objects.Missile_Enemy = Missile_Enemy;
 })(objects || (objects = {}));
 /*
     Name : Jowon Shin, Dongwan Kim
@@ -654,7 +740,7 @@ var objects;
         // check to see if some boundary has been passed
         Star.prototype.CheckBounds = function () {
             // check lower bounds
-            if (this.y >= 480 + this.height) {
+            if (this.y >= 1000 + this.height) {
                 this.Reset();
             }
         };
@@ -706,7 +792,7 @@ var objects;
         // check to see if some boundary has been passed
         LifeItem.prototype.CheckBounds = function () {
             // check lower bounds
-            if (this.y >= 480 + this.height) {
+            if (this.y >= 2000 + this.height) {
                 this.Reset();
             }
         };
@@ -830,8 +916,7 @@ var objects;
         // updates the game object every frame
         Warning.prototype.Update = function () {
             if (this._boss.y < 50) {
-                managers.Game.currentSceneObject.addChild(this);
-                createjs.Sound.play("warningSound");
+                createjs.Sound.play("warningSound", { volume: 0.7 });
                 this.alpha = 1;
                 this.Move();
             }
@@ -871,7 +956,6 @@ var objects;
 (function (objects) {
     var Boss = /** @class */ (function (_super) {
         __extends(Boss, _super);
-        //PRIVATE VARIABLES
         //PUBLIC PROPERTIES
         //CONSTRUCTORS
         function Boss() {
@@ -887,6 +971,7 @@ var objects;
             this._dy = 5;
             this.x = 320;
             this.y = -this.height;
+            this._missileSpawn = new math.Vector2();
             // this.Reset();
         };
         Boss.prototype.Move = function () {
@@ -902,10 +987,75 @@ var objects;
             this.position = new math.Vector2(this.x, this.y);
             this.Move();
             this.CheckBounds();
+            this.BulletFire();
+        };
+        Boss.prototype.BulletFire = function () {
+            if (this.alpha == 1) {
+                var ticker = createjs.Ticker.getTicks();
+                if (ticker % 10 == 0) {
+                    this._missileSpawn = new math.Vector2(this.x, this.y);
+                    var currentMissile = managers.Game.BossBulletManager.CurrentMissile;
+                    var missile = managers.Game.BossBulletManager.Missiles[currentMissile];
+                    var missileCount = managers.Game.BossBulletManager.MissileCount;
+                    missile.x = this._missileSpawn.x;
+                    missile.y = this._missileSpawn.y;
+                    managers.Game.BossBulletManager.CurrentMissile++;
+                    if (managers.Game.BossBulletManager.CurrentMissile > missileCount - 1) {
+                        managers.Game.BossBulletManager.CurrentMissile = 0;
+                    }
+                }
+            }
         };
         return Boss;
     }(objects.GameObject));
     objects.Boss = Boss;
+})(objects || (objects = {}));
+/*
+    Name : Dongwan Kim
+    Version : v1.0
+    Last_modification : Apr 18, 2018
+    Description : Created a boss's missile
+*/
+var objects;
+(function (objects) {
+    var Missile_Boss = /** @class */ (function (_super) {
+        __extends(Missile_Boss, _super);
+        //PRIVATE VARIABLES
+        //PUBLIC PROPERTIES
+        //CONSTRUTOR
+        function Missile_Boss() {
+            var _this = _super.call(this, "bossmissileB") || this;
+            _this.Start();
+            return _this;
+        }
+        //PRIVATE METHODS
+        // //PUBLIC METHODS
+        Missile_Boss.prototype.Start = function () {
+            this.Reset();
+        };
+        Missile_Boss.prototype.Update = function () {
+            this.Move();
+            this.CheckBounds();
+        };
+        Missile_Boss.prototype.Reset = function () {
+            this.alpha = 1;
+            this._dx = (Math.random() * -4) + 2;
+            this._dy = (Math.random() * 5);
+            this.x = -5000;
+            this.y = -5000;
+        };
+        Missile_Boss.prototype.CheckBounds = function () {
+            if (this.y >= 960 + this.height) {
+                this.Reset();
+            }
+        };
+        Missile_Boss.prototype.Move = function () {
+            this.x += this._dx;
+            this.y += this._dy;
+        };
+        return Missile_Boss;
+    }(objects.GameObject));
+    objects.Missile_Boss = Missile_Boss;
 })(objects || (objects = {}));
 /*
     Name : Dongwan Kim, Jowon Shin
@@ -971,6 +1121,23 @@ var managers;
                                     explosion.x = (other.x - 30) + Math.random() * 50;
                                     explosion.y = other.centerY * Math.random();
                                     managers.Game.currentSceneObject.addChild(explosion);
+                                    createjs.Sound.play("attackSound", { volume: 0.1 });
+                                }
+                                break;
+                            case "playerShip":
+                                if ((math.Vector2.distance(onePos, otherPos) < (one.centerY + other.centerY) - 30)) {
+                                    if (one.alpha != 0) {
+                                        other.life -= 1;
+                                        managers.Game.scoreboardManager.Lives -= 1;
+                                        console.log(other.life);
+                                        console.log(one.width + "," + one.height);
+                                        createjs.Sound.play("crashSound");
+                                        one.alpha = 0;
+                                        explosion = new objects.Explosion();
+                                        explosion.x = other.x;
+                                        explosion.y = other.y;
+                                        managers.Game.currentSceneObject.addChild(explosion);
+                                    }
                                 }
                                 break;
                         }
@@ -993,14 +1160,18 @@ var managers;
                                 //if(math.Vector2.distance(missile[countM].position, enemy[countE].position) > (missile[countM].centerY + enemy[countE].centerY - 30)){
                                 if (!enemy[countE].isColliding) {
                                     enemy[countE].isColliding = true;
-                                    enemy[countE].alpha = 0;
                                     missile[countM].alpha = 0;
                                     //createjs.Sound.play("");  TODO: put proper sound
-                                    managers.Game.scoreboardManager.Score += 100;
+                                    enemy[countE].life -= 1;
                                     var explosion = new objects.Explosion();
                                     explosion.x = enemy[countE].x;
                                     explosion.y = enemy[countE].y;
                                     managers.Game.currentSceneObject.addChild(explosion);
+                                    if (enemy[countE].life == 0) {
+                                        enemy[countE].alpha = 0;
+                                        managers.Game.scoreboardManager.Score += 100;
+                                        createjs.Sound.play("attackSound", { volume: 0.2 });
+                                    }
                                 }
                             }
                         }
@@ -1161,6 +1332,96 @@ var managers;
     managers.Missile = Missile;
 })(managers || (managers = {}));
 /*
+    Name : Dongwan Kim
+    Version : v1.1
+    Last_modification : April 19, 2018
+    Description : Changed the missile count
+*/
+var managers;
+(function (managers) {
+    var Missile_Enemy = /** @class */ (function () {
+        //CONSTRUCTOR
+        function Missile_Enemy() {
+            this.Start();
+        }
+        //PRIVATE METHODS
+        Missile_Enemy.prototype._missileShoot = function () {
+            for (var count = 0; count < this._missileCount; count++) {
+                this.Missiles[count] = new objects.Missile_Enemy();
+            }
+        };
+        //PUBLIC METHODS
+        Missile_Enemy.prototype.Start = function () {
+            switch (managers.Game.currentScene) {
+                case config.Scene.PLAY_ONE:
+                    this._missileCount = 5;
+                    break;
+                case config.Scene.PLAY_TWO:
+                    this._missileCount = 6;
+                    break;
+                case config.Scene.PLAY_THREE:
+                    this._missileCount = 7;
+                    break;
+            }
+            this.Missiles = new Array();
+            this._missileShoot();
+        };
+        Missile_Enemy.prototype.Update = function () {
+            this.Missiles.forEach(function (missile) {
+                missile.Update();
+            });
+        };
+        return Missile_Enemy;
+    }());
+    managers.Missile_Enemy = Missile_Enemy;
+})(managers || (managers = {}));
+/*
+    Name : Dongwan Kim
+    Version : v1.0
+    Last_modification : April 18, 2018
+    Description : Created a missile manager class
+*/
+var managers;
+(function (managers) {
+    var Missile_Boss = /** @class */ (function () {
+        //CONSTRUCTOR
+        function Missile_Boss() {
+            this.Start();
+        }
+        //PRIVATE METHODS
+        Missile_Boss.prototype._missileShoot = function () {
+            for (var count = 0; count < this._missileCount; count++) {
+                this.Missiles[count] = new objects.Missile_Boss();
+            }
+        };
+        //PUBLIC METHODS
+        Missile_Boss.prototype.Start = function () {
+            switch (managers.Game.currentScene) {
+                case config.Scene.PLAY_ONE:
+                    this._missileCount = 50;
+                    break;
+                case config.Scene.PLAY_TWO:
+                    this._missileCount = 100;
+                    break;
+                case config.Scene.PLAY_THREE:
+                    this._missileCount = 150;
+                    break;
+            }
+            this.MissileCount = this._missileCount;
+            this.Missiles = new Array();
+            this._missileShoot();
+            this.CurrentMissile = 0;
+        };
+        Missile_Boss.prototype.Update = function () {
+            this.Missiles.forEach(function (missile) {
+                missile.Update();
+            });
+        };
+        return Missile_Boss;
+    }());
+    managers.Missile_Boss = Missile_Boss;
+})(managers || (managers = {}));
+/*
     Name : Jowon Shin
     Version : v1.0
     Last_modification : March 16, 2018
@@ -1251,9 +1512,9 @@ var scenes;
 })(scenes || (scenes = {}));
 /*
     Name : Dongwan Kim, Jowon Shin
-    Version : v1.2
-    Last_modification : Feb 25, 2018
-    Description : Added a background image
+    Version : v1.3
+    Last_modification : Apr 19, 2018
+    Description : Implemented selected mode value
 */
 var scenes;
 (function (scenes) {
@@ -1269,9 +1530,13 @@ var scenes;
         //PRIVATE METHODS
         chooseModeScene.prototype._btnNormalClick = function () {
             managers.Game.currentScene = config.Scene.PLAY_ONE;
+            //Selection 0: Normal mode
+            managers.Game.selectedMode = 0;
         };
         chooseModeScene.prototype._btnHellClick = function () {
             managers.Game.currentScene = config.Scene.PLAY_ONE;
+            //Selection 0: Normal mode
+            managers.Game.selectedMode = 1;
         };
         chooseModeScene.prototype._btnBackClick = function () {
             managers.Game.currentScene = config.Scene.OPENING;
@@ -1304,9 +1569,9 @@ var scenes;
 })(scenes || (scenes = {}));
 /*
     Name : Dongwan Kim, Changmin Shin, Jowon Shin
-    Version : v2.5
-    Last_modification : Apr 07, 2018
-    Description : Changed the amount of enemy
+    Version : v2.7
+    Last_modification : Apr 18, 2018
+    Description : Added enemies missiles
 */
 var scenes;
 (function (scenes) {
@@ -1336,7 +1601,9 @@ var scenes;
             this._plane = new objects.Plane();
             managers.Game.plane = this._plane;
             this._star = new objects.Star();
+            managers.Game.star = this._star;
             this._lifeItem = new objects.LifeItem();
+            managers.Game.lifeitem = this._lifeItem;
             this._meteor = new objects.Meteor();
             this._enemyNum = 5;
             this._enemy = new Array();
@@ -1345,6 +1612,10 @@ var scenes;
             managers.Game.boss = this._boss;
             this._missileManager = new managers.Missile();
             managers.Game.bulletManager = this._missileManager;
+            this._enemyMissileManager = new managers.Missile_Enemy();
+            managers.Game.EnemyBulletManager = this._enemyMissileManager;
+            this._bossMissileManager = new managers.Missile_Boss();
+            managers.Game.BossBulletManager = this._bossMissileManager;
             for (var count = 0; count < this._enemyNum; count++) {
                 this._enemy[count] = new objects.Enemy();
             }
@@ -1365,6 +1636,9 @@ var scenes;
             this._lifeItem.Update();
             this._meteor.Update();
             this._missileManager.Update();
+            this._enemyMissileManager.Update();
+            this._bossMissileManager.Update();
+            // this.BulletFire();
             if (this._scoreBoard.Score >= 3000) {
                 this._boss.Update();
                 this._warningMessage.Update();
@@ -1376,14 +1650,16 @@ var scenes;
             this._enemy.forEach(function (enemy) {
                 enemy.Update();
                 managers.Collision.Check(_this._plane, enemy);
-                if (_this._plane.Life == 0) {
-                    managers.Game.currentScene = config.Scene.GAMEOVER;
-                    _this._backgroundSound.stop();
-                }
             });
             managers.Collision.Crush(this._missileManager.Missiles, this._enemy);
             this._missileManager.Missiles.forEach(function (missile) {
                 managers.Collision.Check(missile, _this._boss);
+            });
+            this._bossMissileManager.Missiles.forEach(function (missile) {
+                managers.Collision.Check(missile, _this._plane);
+            });
+            this._enemyMissileManager.Missiles.forEach(function (missile) {
+                managers.Collision.Check(missile, _this._plane);
             });
             if (this._scoreBoard.Lives <= 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
@@ -1398,6 +1674,13 @@ var scenes;
             this.addChild(this._star);
             this.addChild(this._lifeItem);
             this._missileManager.Missiles.forEach(function (missile) {
+                _this.addChild(missile);
+            });
+            this._enemyMissileManager.Missiles.forEach(function (missile) {
+                _this.addChild(missile);
+            });
+            // this.addChild(this._enemyMissileManager);
+            this._bossMissileManager.Missiles.forEach(function (missile) {
                 _this.addChild(missile);
             });
             this.addChild(this._warningMessage);
@@ -1416,9 +1699,9 @@ var scenes;
 })(scenes || (scenes = {}));
 /*
     Name : Dongwan Kim
-    Version : v1.4
-     Last_modification : Apr 07, 2018
-    Description : Changed the amount of enemy
+    Version : v1.6
+    Last_modification : Apr 18, 2018
+    Description : Added enemies missiles
 */
 var scenes;
 (function (scenes) {
@@ -1448,7 +1731,9 @@ var scenes;
             this._plane = new objects.Plane();
             this._plane = managers.Game.plane;
             this._star = new objects.Star();
+            managers.Game.star = this._star;
             this._lifeItem = new objects.LifeItem();
+            managers.Game.lifeitem = this._lifeItem;
             this._meteor = new objects.Meteor();
             this._enemyNum = 6;
             this._enemy = new Array();
@@ -1457,6 +1742,10 @@ var scenes;
             managers.Game.boss = this._boss;
             this._missileManager = new managers.Missile();
             managers.Game.bulletManager = this._missileManager;
+            this._enemyMissileManager = new managers.Missile_Enemy();
+            managers.Game.EnemyBulletManager = this._enemyMissileManager;
+            this._bossMissileManager = new managers.Missile_Boss();
+            managers.Game.BossBulletManager = this._bossMissileManager;
             for (var count = 0; count < this._enemyNum; count++) {
                 this._enemy[count] = new objects.Enemy();
             }
@@ -1478,6 +1767,8 @@ var scenes;
             this._lifeItem.Update();
             this._meteor.Update();
             this._missileManager.Update();
+            this._enemyMissileManager.Update();
+            this._bossMissileManager.Update();
             if (this._scoreBoard.Score >= this._prviousScore + 5000) {
                 this._boss.Update();
                 this._warningMessage.Update();
@@ -1490,15 +1781,16 @@ var scenes;
                 enemy.Update();
                 enemy.Dy += 0.07;
                 managers.Collision.Check(_this._plane, enemy);
-                if (_this._plane.Life == 0) {
-                    managers.Game.currentScene = config.Scene.GAMEOVER;
-                    _this._backgroundSound.stop();
-                }
             });
-            //this._collision.check(this._missile,this._enemy);
             managers.Collision.Crush(this._missileManager.Missiles, this._enemy);
             this._missileManager.Missiles.forEach(function (missile) {
                 managers.Collision.Check(missile, _this._boss);
+            });
+            this._bossMissileManager.Missiles.forEach(function (missile) {
+                managers.Collision.Check(missile, _this._plane);
+            });
+            this._enemyMissileManager.Missiles.forEach(function (missile) {
+                managers.Collision.Check(missile, _this._plane);
             });
             if (this._scoreBoard.Lives <= 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
@@ -1513,6 +1805,12 @@ var scenes;
             this.addChild(this._star);
             this.addChild(this._lifeItem);
             this._missileManager.Missiles.forEach(function (missile) {
+                _this.addChild(missile);
+            });
+            this._enemyMissileManager.Missiles.forEach(function (missile) {
+                _this.addChild(missile);
+            });
+            this._bossMissileManager.Missiles.forEach(function (missile) {
                 _this.addChild(missile);
             });
             this.addChild(this._warningMessage);
@@ -1531,9 +1829,9 @@ var scenes;
 })(scenes || (scenes = {}));
 /*
     Name : Dongwan Kim
-    Version : v1.3
-    Last_modification : Apr 07, 2018
-    Description : Changed the amount of enemy
+    Version : v1.6
+    Last_modification : Apr 18, 2018
+    Description : Modified success condition
 */
 var scenes;
 (function (scenes) {
@@ -1563,7 +1861,9 @@ var scenes;
             this._plane = new objects.Plane();
             this._plane = managers.Game.plane;
             this._star = new objects.Star();
+            managers.Game.star = this._star;
             this._lifeItem = new objects.LifeItem();
+            managers.Game.lifeitem = this._lifeItem;
             this._meteor = new objects.Meteor();
             this._enemyNum = 7;
             this._enemy = new Array();
@@ -1572,6 +1872,10 @@ var scenes;
             managers.Game.boss = this._boss;
             this._missileManager = new managers.Missile();
             managers.Game.bulletManager = this._missileManager;
+            this._enemyMissileManager = new managers.Missile_Enemy();
+            managers.Game.EnemyBulletManager = this._enemyMissileManager;
+            this._bossMissileManager = new managers.Missile_Boss();
+            managers.Game.BossBulletManager = this._bossMissileManager;
             for (var count = 0; count < this._enemyNum; count++) {
                 this._enemy[count] = new objects.Enemy();
             }
@@ -1593,7 +1897,9 @@ var scenes;
             this._lifeItem.Update();
             this._meteor.Update();
             this._missileManager.Update();
-            if (this._scoreBoard.Score >= this._prviousScore + 10000) {
+            this._enemyMissileManager.Update();
+            this._bossMissileManager.Update();
+            if (this._scoreBoard.Score >= this._prviousScore + 3000) {
                 this._boss.Update();
                 this._warningMessage.Update();
             }
@@ -1605,21 +1911,25 @@ var scenes;
                 enemy.Update();
                 enemy.Dy += 0.07;
                 managers.Collision.Check(_this._plane, enemy);
-                if (_this._plane.Life == 0) {
-                    managers.Game.currentScene = config.Scene.GAMEOVER;
-                    _this._backgroundSound.stop();
-                }
             });
-            //this._collision.check(this._missile,this._enemy);
             managers.Collision.Crush(this._missileManager.Missiles, this._enemy);
             this._missileManager.Missiles.forEach(function (missile) {
                 managers.Collision.Check(missile, _this._boss);
+            });
+            this._bossMissileManager.Missiles.forEach(function (missile) {
+                managers.Collision.Check(missile, _this._plane);
+            });
+            this._enemyMissileManager.Missiles.forEach(function (missile) {
+                managers.Collision.Check(missile, _this._plane);
             });
             if (this._scoreBoard.Lives <= 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
                 this._backgroundSound.stop();
             }
-            this._sucessStage();
+            //Finish the game when boss is dead in normal mode
+            if (managers.Game.selectedMode == 0) {
+                this._sucessStage();
+            }
         };
         StageThreeScene.prototype.Main = function () {
             var _this = this;
@@ -1628,6 +1938,12 @@ var scenes;
             this.addChild(this._star);
             this.addChild(this._lifeItem);
             this._missileManager.Missiles.forEach(function (missile) {
+                _this.addChild(missile);
+            });
+            this._enemyMissileManager.Missiles.forEach(function (missile) {
+                _this.addChild(missile);
+            });
+            this._bossMissileManager.Missiles.forEach(function (missile) {
                 _this.addChild(missile);
             });
             this.addChild(this._warningMessage);
@@ -1667,6 +1983,7 @@ var scenes;
         };
         //PUBLIC METHODS
         GameOverScene.prototype.Start = function () {
+            this._background = new objects.Background(this.assetManager);
             this._btnPlayAgain = new objects.Button("btnPlayAgain", 320, 360);
             this._lblGameOver = new objects.Label("Game Over", "40px", "SpaceComic", "#FF0000", 320, 240, true);
             this._lblScore = new objects.Label("High Score: ", "40px", "SpaceComic", "#FF0000", 120, 95, false);
@@ -1677,7 +1994,8 @@ var scenes;
         GameOverScene.prototype.Update = function () {
         };
         GameOverScene.prototype.Main = function () {
-            createjs.Sound.play("tadaSound"); //must be changed
+            createjs.Sound.play("gameOverSound"); //must be changed
+            this.addChild(this._background);
             this.addChild(this._lblGameOver);
             this.addChild(this._btnPlayAgain);
             this._scoreboard.HighScore = managers.Game.HighScore;
@@ -1702,16 +2020,20 @@ var scenes;
 /// <reference path="../../Scripts/objects/plane.ts"/>
 /// <reference path="../../Scripts/objects/missile.ts"/>
 /// <reference path="../../Scripts/objects/enemy.ts"/>
+/// <reference path="../../Scripts/objects/missile_enemy.ts"/>
 /// <reference path="../../Scripts/objects/star.ts"/>
 /// <reference path="../../Scripts/objects/lifeitem.ts"/>
 /// <reference path="../../Scripts/objects/meteor.ts"/>
 /// <reference path="../../Scripts/objects/explosion.ts"/>
 /// <reference path="../../Scripts/objects/warning.ts"/>
 /// <reference path="../../Scripts/objects/boss.ts"/>
+/// <reference path="../../Scripts/objects/missile_boss.ts"/>
 /// <reference path="../../Scripts/managers/collision.ts"/>
 /// <reference path="../../Scripts/managers/keyboard.ts"/>
 /// <reference path="../../Scripts/managers/scoreboard.ts"/>
 /// <reference path="../../Scripts/managers/missile.ts"/>
+/// <reference path="../../Scripts/managers/missile_enemy.ts"/>
+/// <reference path="../../Scripts/managers/missile_boss.ts"/>
 /// <reference path="../../Scripts/scenes/loading.ts"/>
 /// <reference path="../../Scripts/scenes/opening.ts"/>
 /// <reference path="../../Scripts/scenes/choosemode.ts"/>
@@ -1721,9 +2043,9 @@ var scenes;
 /// <reference path="../../Scripts/scenes/gameover.ts"/>
 /*
     Name : Dongwan Kim, Jowon Shin, Changmin Shin
-    Version : v2.5
-    Last_modification : Mar 18, 2018
-    Description : Changed image path with spriteS
+    Version : v2.6
+    Last_modification : Apr 18, 2018
+    Description : Changed the frame rate for explosion
 */
 /// <reference path="_reference.ts"/>
 (function () {
@@ -1735,6 +2057,7 @@ var scenes;
     var currentScene;
     var currentState;
     var keyBoardManager;
+    var stats;
     var textureAtlasData;
     var textureAtlas;
     textureAtlasData = {
@@ -1742,47 +2065,47 @@ var scenes;
             "./Assets/sprites/textureAtlas.png"
         ],
         "frames": [
-            [1, 1, 512, 606, 0, 0, -25],
-            [515, 1, 474, 464, 0, -19, -24],
-            [515, 467, 398, 191, 0, -2, -2],
-            [915, 467, 92, 164, 0, -4, -18],
-            [915, 633, 80, 54, 0, -5, -18],
+            [1, 1, 512, 606, 0, 0, 0],
+            [515, 1, 474, 464, 0, 0, 0],
+            [515, 467, 398, 191, 0, 0, 0],
+            [915, 467, 92, 164, 0, 0, 0],
+            [915, 633, 80, 54, 0, 0, 0],
             [1, 609, 286, 186, 0, 0, 0],
-            [289, 609, 198, 172, 0, -29, -42],
-            [489, 660, 240, 242, 0, -8, -7],
-            [289, 783, 198, 172, 0, -29, -42],
-            [731, 660, 160, 100, 0, -20, 0],
-            [893, 689, 130, 96, 0, -10, -2],
-            [731, 762, 150, 179, 0, 0, -7],
-            [489, 904, 230, 412, 0, -13, -50],
-            [883, 787, 126, 122, 0, -1, -3],
-            [883, 911, 120, 121, 0, -3, -4],
-            [721, 943, 119, 108, 0, -6, -10],
+            [289, 609, 198, 172, 0, 0, 0],
+            [489, 660, 240, 242, 0, 0, 0],
+            [289, 783, 198, 172, 0, 0, 0],
+            [731, 660, 160, 100, 0, 0, 0],
+            [893, 689, 130, 96, 0, 0, 0],
+            [731, 762, 150, 179, 0, 0, 0],
+            [489, 904, 230, 412, 0, 0, 0],
+            [883, 787, 126, 122, 0, 0, 0],
+            [883, 911, 120, 121, 0, 0, 0],
+            [721, 943, 119, 108, 0, 0, 0],
             [842, 943, 35, 35, 0, 0, 0],
-            [1, 797, 229, 57, 0, -12, -7],
-            [232, 797, 52, 50, 0, -5, -8],
-            [232, 849, 51, 52, 0, -6, -7],
-            [1, 856, 226, 56, 0, -7, -14],
-            [229, 903, 58, 69, 0, -10, 0],
-            [289, 957, 198, 125, 0, -26, 0],
-            [1, 914, 226, 56, 0, -7, -14],
-            [1, 972, 196, 232, 0, -1, -16],
-            [199, 974, 78, 41, 0, -25, -43],
+            [1, 797, 229, 57, 0, 0, 0],
+            [232, 797, 52, 50, 0, 0, 0],
+            [232, 849, 51, 52, 0, 0, 0],
+            [1, 856, 226, 56, 0, 0, 0],
+            [229, 903, 58, 69, 0, 0, 0],
+            [289, 957, 198, 125, 0, 0, 0],
+            [1, 914, 226, 56, 0, 0, 0],
+            [1, 972, 196, 232, 0, 0, 0],
+            [199, 974, 78, 41, 0, 0, 0],
             [199, 1017, 75, 75, 0, 0, 0],
-            [842, 1034, 63, 70, 0, -7, 0],
-            [907, 1034, 61, 70, 0, -8, 0],
-            [970, 1034, 51, 52, 0, -6, -7],
-            [970, 1088, 51, 52, 0, -6, -7],
-            [721, 1053, 60, 60, 0, -2, -2],
-            [783, 1053, 57, 64, 0, -4, 0],
-            [721, 1115, 60, 60, 0, -2, -2],
-            [842, 1106, 56, 59, 0, -11, 0],
-            [783, 1119, 56, 57, 0, -11, 0],
-            [721, 1177, 51, 52, 0, -6, -7],
-            [900, 1106, 51, 52, 0, -6, -7],
-            [953, 1142, 51, 52, 0, -6, -7],
-            [900, 1160, 49, 64, 0, -7, 0],
-            [841, 1167, 46, 78, 0, -9, -9]
+            [842, 1034, 63, 70, 0, 0, 0],
+            [907, 1034, 61, 70, 0, 0, 0],
+            [970, 1034, 51, 52, 0, 0, 0],
+            [970, 1088, 51, 52, 0, 0, 0],
+            [721, 1053, 60, 60, 0, 0, 0],
+            [783, 1053, 57, 64, 0, 0, 0],
+            [721, 1115, 60, 60, 0, 0, 0],
+            [842, 1106, 56, 59, 0, 0, 0],
+            [783, 1119, 56, 57, 0, 0, 0],
+            [721, 1177, 51, 52, 0, 0, 0],
+            [900, 1106, 51, 52, 0, 0, 0],
+            [953, 1142, 51, 52, 0, 0, 0],
+            [900, 1160, 49, 64, 0, 0, 0],
+            [841, 1167, 46, 78, 0, 0, 0],
         ],
         "animations": {
             "enemyH": { "frames": [0] },
@@ -1803,7 +2126,10 @@ var scenes;
             "meteorB": { "frames": [15] },
             "star": { "frames": [16] },
             "btnUltimate": { "frames": [17] },
-            "explosion": { "frames": [19, 29, 30, 36, 37, 38, 18] },
+            "explosion": {
+                "frames": [19, 29, 30, 36, 37, 38, 18],
+                "speed": 0.4
+            },
             "btnNormal": { "frames": [20] },
             "bossA": { "frames": [22] },
             "btnStart": { "frames": [23] },
@@ -1834,7 +2160,10 @@ var scenes;
         { id: "bazoozaSound", src: "./Assets/sounds/bazookaSound.mp3" },
         { id: "crashSound", src: "./Assets/sounds/crashSound.mp3" },
         { id: "tadaSound", src: "./Assets/sounds/tada.mp3" },
-        { id: "gettingItemSound", src: "./Assets/sounds/gettingItem.wav" }
+        { id: "gettingItemSound", src: "./Assets/sounds/gettingItem.wav" },
+        { id: "attackSound", src: "./Assets/sounds/attackSound.mp3" },
+        { id: "levelCompleteSound", src: "./Assets/sounds/levelCompleteSound.mp3" },
+        { id: "gameOverSound", src: "./Assets/sounds/gameOverSound.mp3" }
     ];
     //preload Assets
     function Init() {
@@ -1845,7 +2174,13 @@ var scenes;
         assetManager.on("complete", Start, this);
         console.log("start");
     }
+    function InitStats() {
+        stats = new Stats();
+        stats.showPanel(0);
+        document.body.appendChild(stats.dom);
+    }
     function Start() {
+        InitStats();
         textureAtlasData.images = [assetManager.getResult("textureAtlas")];
         //textureAtlas = new createjs.SpriteSheet(textureAtlasData);
         stage = new createjs.Stage(canvas);
@@ -1862,11 +2197,13 @@ var scenes;
         Main();
     }
     function Update() {
+        stats.begin();
         if (currentState != managers.Game.currentScene) {
             Main();
         }
         currentScene.Update();
         stage.update();
+        stats.end();
     }
     function Main() {
         stage.removeAllChildren();

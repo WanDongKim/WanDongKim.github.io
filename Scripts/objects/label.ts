@@ -11,6 +11,9 @@ module objects {
         private _boss : objects.Boss;
         private _scoreBoard : managers.ScoreBoard;
         private _enemy : objects.Enemy[];
+        private _lifeItem: objects.LifeItem;
+        private _star: objects.Star;
+        private _bossMissile: managers.Missile_Boss;
         // Public Propoerties
 
         // Constructor
@@ -33,7 +36,10 @@ module objects {
             this.y = y;
 
             this._boss = managers.Game.boss;
+            this._bossMissile = managers.Game.BossBulletManager;
             this._enemy = managers.Game.enemies;
+            this._lifeItem = managers.Game.lifeitem;
+            this._star = managers.Game.star;
             this._scoreBoard = managers.Game.scoreboardManager;
         }
 
@@ -46,12 +52,20 @@ module objects {
         // updates the game object every frame
         public Update(): void {
             if(this._boss.alpha === 0) {
-                createjs.Sound.play("tada");
+                if(this.y < 480 && this.y > 300){
+                createjs.Sound.play("levelCompleteSound");
+                }
                 this.alpha = 1;
                 this.Move();
                 this._enemy.forEach(enemy => {
-                     managers.Game.currentSceneObject.removeChild(enemy);
+                    enemy.alpha = 0;
+                    //managers.Game.currentSceneObject.removeChild(enemy);
                 });
+                this._bossMissile.Missiles.forEach(missile => {
+                    missile.alpha = 0;
+                });
+                this._star.alpha = 0;
+                this._lifeItem.alpha = 0;
             } else {
                 this.alpha = 0;
             }
