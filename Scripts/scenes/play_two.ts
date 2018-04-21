@@ -117,6 +117,11 @@ module scenes {
                 enemy.Update();
                 enemy.Dy += 0.07;
                 managers.Collision.Check(this._plane, enemy);
+
+                if (this._plane.Life <= 0) {
+                    managers.Game.currentScene = config.Scene.GAMEOVER;
+                    this._backgroundSound.stop();
+                }
             });
 
 
@@ -131,7 +136,12 @@ module scenes {
             this._enemyMissileManager.Missiles.forEach(missile =>{
                 managers.Collision.Check(missile, this._plane);
             });
-            if (this._scoreBoard.Lives <= 0) {
+            if(this._scoreBoard.Lives <= 1) {
+                this._scoreBoard.LivesLabel.color = "#FF0000";
+            } else if(this._scoreBoard.Lives >= 2){
+                this._scoreBoard.LivesLabel.color = "#FFFFFF";
+            }
+            if (this._scoreBoard.Lives === 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
                 this._backgroundSound.stop();
             }

@@ -9,25 +9,6 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 /*
-    Name : Dongwan Kim, Jowon Shin
-    Version : v1.4
-    Last_modification : Feb 23, 2018
-    Description : Added 3rd stage scene
-*/
-var config;
-(function (config) {
-    var Scene;
-    (function (Scene) {
-        Scene[Scene["LOADING"] = 0] = "LOADING";
-        Scene[Scene["OPENING"] = 1] = "OPENING";
-        Scene[Scene["CHOOSEMODE"] = 2] = "CHOOSEMODE";
-        Scene[Scene["PLAY_ONE"] = 3] = "PLAY_ONE";
-        Scene[Scene["PLAY_TWO"] = 4] = "PLAY_TWO";
-        Scene[Scene["PLAY_THREE"] = 5] = "PLAY_THREE";
-        Scene[Scene["GAMEOVER"] = 6] = "GAMEOVER";
-    })(Scene = config.Scene || (config.Scene = {}));
-})(config || (config = {}));
-/*
     Name : Dongwan Kim
     Version : v1.0
     Last_modification : Feb 25, 2018
@@ -48,6 +29,26 @@ var config;
         return Keys;
     }());
     config.Keys = Keys;
+})(config || (config = {}));
+/*
+    Name : Dongwan Kim, Jowon Shin
+    Version : v1.4
+    Last_modification : Feb 23, 2018
+    Description : Added 3rd stage scene
+*/
+var config;
+(function (config) {
+    var Scene;
+    (function (Scene) {
+        Scene[Scene["LOADING"] = 0] = "LOADING";
+        Scene[Scene["OPENING"] = 1] = "OPENING";
+        Scene[Scene["CHOOSEMODE"] = 2] = "CHOOSEMODE";
+        Scene[Scene["PLAY_ONE"] = 3] = "PLAY_ONE";
+        Scene[Scene["PLAY_TWO"] = 4] = "PLAY_TWO";
+        Scene[Scene["PLAY_THREE"] = 5] = "PLAY_THREE";
+        Scene[Scene["GAMEOVER"] = 6] = "GAMEOVER";
+        Scene[Scene["COMPLETE"] = 7] = "COMPLETE";
+    })(Scene = config.Scene || (config.Scene = {}));
 })(config || (config = {}));
 /*
     Name : Dongwan Kim, Jowon Shin
@@ -1114,6 +1115,8 @@ var managers;
                                 other.life -= 1;
                                 if (other.life < 0) {
                                     other.alpha = 0;
+                                    managers.Game.scoreboardManager.Score += 2000;
+                                    createjs.Sound.play("bazookaSound");
                                 }
                                 one.alpha = 0;
                                 if (other.y == 50) {
@@ -1161,7 +1164,6 @@ var managers;
                                 if (!enemy[countE].isColliding) {
                                     enemy[countE].isColliding = true;
                                     missile[countM].alpha = 0;
-                                    //createjs.Sound.play("");  TODO: put proper sound
                                     enemy[countE].life -= 1;
                                     var explosion = new objects.Explosion();
                                     explosion.x = enemy[countE].x;
@@ -1286,7 +1288,7 @@ var managers;
         // private methods
         ScoreBoard.prototype._initialize = function () {
             this.LivesLabel = new objects.Label("Lives: 0", "20px", "SpaceComic", "#FFFFFF", 10, 10, false);
-            this.ScoreLabel = new objects.Label("Score: 99999", "15px", "SpaceComic", "#FFFF00", 480, 10, false);
+            this.ScoreLabel = new objects.Label("Score: 99999", "15px", "SpaceComic", "#FFFF00", 475, 10, false);
             this.HighScoreLabel = new objects.Label("High Score: 99999", "40px", "SpaceComic", "#FFFFFF", 320, 140, true);
             this.Score = 0;
             this.Lives = 3;
@@ -1398,13 +1400,13 @@ var managers;
         Missile_Boss.prototype.Start = function () {
             switch (managers.Game.currentScene) {
                 case config.Scene.PLAY_ONE:
-                    this._missileCount = 50;
+                    this._missileCount = 10;
                     break;
                 case config.Scene.PLAY_TWO:
-                    this._missileCount = 100;
+                    this._missileCount = 40;
                     break;
                 case config.Scene.PLAY_THREE:
-                    this._missileCount = 150;
+                    this._missileCount = 100;
                     break;
             }
             this.MissileCount = this._missileCount;
@@ -1441,26 +1443,37 @@ var scenes;
         //PRIVATE METHODS
         loadingScene.prototype.GoStart = function () {
             setTimeout(
-            //Move to Opening scene after 3 seconds
+            //Move to Opening scene after 5 seconds
             function () {
                 managers.Game.currentScene = config.Scene.OPENING;
-            }, 3000);
+            }, 7000);
         };
-        loadingScene.prototype.AnimateLogo = function () {
+        loadingScene.prototype.UpdateLabel = function (label) {
+            label.alpha = 1;
+            label.y -= 2;
         };
         //PUBLIC METHODS
         loadingScene.prototype.Start = function () {
+            createjs.Sound.play("storySound", { loop: 1 });
             this._background = new objects.Background(this.assetManager);
             this._logo = new objects.Logo(this.assetManager, "imgLogo", 320, 220);
+            this._line1 = new objects.Label("In 4444, aliens are invading Earth", "20px", "SpaceComic", "#FFFFFF", 280, 500, true);
+            this._line2 = new objects.Label("It is your job to defend", "20px", "SpaceComic", "#FFFFFF", 280, 550, true);
+            this._line3 = new objects.Label("your home planet, Earth annd the Galaxy!", "20px", "SpaceComic", "#FFFFFF", 280, 600, true);
             this.Main();
             console.log("loading game..");
         };
         loadingScene.prototype.Update = function () {
+            this.UpdateLabel(this._line1);
+            this.UpdateLabel(this._line2);
+            this.UpdateLabel(this._line3);
         };
         loadingScene.prototype.Main = function () {
             this.addChild(this._background);
-            this.addChild(this._logo);
-            this.AnimateLogo();
+            //this.addChild(this._logo);
+            this.addChild(this._line1);
+            this.addChild(this._line2);
+            this.addChild(this._line3);
             this.GoStart();
         };
         return loadingScene;
@@ -1612,8 +1625,8 @@ var scenes;
             managers.Game.boss = this._boss;
             this._missileManager = new managers.Missile();
             managers.Game.bulletManager = this._missileManager;
-            this._enemyMissileManager = new managers.Missile_Enemy();
-            managers.Game.EnemyBulletManager = this._enemyMissileManager;
+            // this._enemyMissileManager = new managers.Missile_Enemy();
+            // managers.Game.EnemyBulletManager = this._enemyMissileManager;
             this._bossMissileManager = new managers.Missile_Boss();
             managers.Game.BossBulletManager = this._bossMissileManager;
             for (var count = 0; count < this._enemyNum; count++) {
@@ -1636,7 +1649,7 @@ var scenes;
             this._lifeItem.Update();
             this._meteor.Update();
             this._missileManager.Update();
-            this._enemyMissileManager.Update();
+            // this._enemyMissileManager.Update();
             this._bossMissileManager.Update();
             // this.BulletFire();
             if (this._scoreBoard.Score >= 3000) {
@@ -1650,6 +1663,10 @@ var scenes;
             this._enemy.forEach(function (enemy) {
                 enemy.Update();
                 managers.Collision.Check(_this._plane, enemy);
+                if (_this._plane.Life <= 0) {
+                    managers.Game.currentScene = config.Scene.GAMEOVER;
+                    _this._backgroundSound.stop();
+                }
             });
             managers.Collision.Crush(this._missileManager.Missiles, this._enemy);
             this._missileManager.Missiles.forEach(function (missile) {
@@ -1658,10 +1675,16 @@ var scenes;
             this._bossMissileManager.Missiles.forEach(function (missile) {
                 managers.Collision.Check(missile, _this._plane);
             });
-            this._enemyMissileManager.Missiles.forEach(function (missile) {
-                managers.Collision.Check(missile, _this._plane);
-            });
-            if (this._scoreBoard.Lives <= 0) {
+            // this._enemyMissileManager.Missiles.forEach(missile =>{
+            //     managers.Collision.Check(missile, this._plane);
+            // });
+            if (this._scoreBoard.Lives <= 1) {
+                this._scoreBoard.LivesLabel.color = "#FF0000";
+            }
+            else if (this._scoreBoard.Lives >= 2) {
+                this._scoreBoard.LivesLabel.color = "#FFFFFF";
+            }
+            if (this._scoreBoard.Lives === 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
                 this._backgroundSound.stop();
             }
@@ -1676,9 +1699,9 @@ var scenes;
             this._missileManager.Missiles.forEach(function (missile) {
                 _this.addChild(missile);
             });
-            this._enemyMissileManager.Missiles.forEach(function (missile) {
-                _this.addChild(missile);
-            });
+            // this._enemyMissileManager.Missiles.forEach(missile =>{
+            //     this.addChild(missile);
+            // });
             // this.addChild(this._enemyMissileManager);
             this._bossMissileManager.Missiles.forEach(function (missile) {
                 _this.addChild(missile);
@@ -1781,6 +1804,10 @@ var scenes;
                 enemy.Update();
                 enemy.Dy += 0.07;
                 managers.Collision.Check(_this._plane, enemy);
+                if (_this._plane.Life <= 0) {
+                    managers.Game.currentScene = config.Scene.GAMEOVER;
+                    _this._backgroundSound.stop();
+                }
             });
             managers.Collision.Crush(this._missileManager.Missiles, this._enemy);
             this._missileManager.Missiles.forEach(function (missile) {
@@ -1792,7 +1819,13 @@ var scenes;
             this._enemyMissileManager.Missiles.forEach(function (missile) {
                 managers.Collision.Check(missile, _this._plane);
             });
-            if (this._scoreBoard.Lives <= 0) {
+            if (this._scoreBoard.Lives <= 1) {
+                this._scoreBoard.LivesLabel.color = "#FF0000";
+            }
+            else if (this._scoreBoard.Lives >= 2) {
+                this._scoreBoard.LivesLabel.color = "#FFFFFF";
+            }
+            if (this._scoreBoard.Lives === 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
                 this._backgroundSound.stop();
             }
@@ -1849,7 +1882,7 @@ var scenes;
             if (this._boss.alpha == 0) {
                 this._congratMessage.Update();
                 setTimeout(function () {
-                    managers.Game.currentScene = config.Scene.GAMEOVER;
+                    managers.Game.currentScene = config.Scene.COMPLETE;
                 }, 4000);
                 this._backgroundSound.stop();
             }
@@ -1911,6 +1944,10 @@ var scenes;
                 enemy.Update();
                 enemy.Dy += 0.07;
                 managers.Collision.Check(_this._plane, enemy);
+                if (_this._plane.Life <= 0) {
+                    managers.Game.currentScene = config.Scene.GAMEOVER;
+                    _this._backgroundSound.stop();
+                }
             });
             managers.Collision.Crush(this._missileManager.Missiles, this._enemy);
             this._missileManager.Missiles.forEach(function (missile) {
@@ -1922,7 +1959,13 @@ var scenes;
             this._enemyMissileManager.Missiles.forEach(function (missile) {
                 managers.Collision.Check(missile, _this._plane);
             });
-            if (this._scoreBoard.Lives <= 0) {
+            if (this._scoreBoard.Lives <= 1) {
+                this._scoreBoard.LivesLabel.color = "#FF0000";
+            }
+            else if (this._scoreBoard.Lives >= 2) {
+                this._scoreBoard.LivesLabel.color = "#FFFFFF";
+            }
+            if (this._scoreBoard.Lives === 0) {
                 managers.Game.currentScene = config.Scene.GAMEOVER;
                 this._backgroundSound.stop();
             }
@@ -1962,6 +2005,53 @@ var scenes;
 })(scenes || (scenes = {}));
 /*
     Name : Jowon Shin
+    Version : v1.0
+    Last_modification : April 20, 2018
+    Description : created game complete
+*/
+var scenes;
+(function (scenes) {
+    var CompleteScene = /** @class */ (function (_super) {
+        __extends(CompleteScene, _super);
+        //PUBLIC PROPERTIES
+        //CONSTRUCTOR
+        function CompleteScene() {
+            var _this = _super.call(this) || this;
+            _this.Start();
+            return _this;
+        }
+        //PRIVATE METHODS
+        CompleteScene.prototype._btnPlayAgainClick = function () {
+            managers.Game.currentScene = config.Scene.OPENING;
+        };
+        //PUBLIC METHODS
+        CompleteScene.prototype.Start = function () {
+            this._background = new objects.Background(this.assetManager);
+            this._btnPlayAgain = new objects.Button("btnPlayAgain", 320, 400);
+            this._lblCongrat = new objects.Label("Congratulations! Game Complete!", "30px", "SpaceComic", "#FFFFFF", 320, 240, true);
+            this._lblScore = new objects.Label("High Score: ", "40px", "SpaceComic", "#FFFFFF", 100, 95, false);
+            this._scoreboard = new managers.ScoreBoard;
+            this.Main();
+            console.log("game complete");
+        };
+        CompleteScene.prototype.Update = function () {
+        };
+        CompleteScene.prototype.Main = function () {
+            createjs.Sound.play("tadaSound");
+            this.addChild(this._background);
+            this.addChild(this._lblCongrat);
+            this.addChild(this._btnPlayAgain);
+            this._scoreboard.HighScore = managers.Game.HighScore;
+            this._lblScore.text += this._scoreboard.HighScore;
+            this.addChild(this._lblScore);
+            this._btnPlayAgain.on("click", this._btnPlayAgainClick);
+        };
+        return CompleteScene;
+    }(objects.Scene));
+    scenes.CompleteScene = CompleteScene;
+})(scenes || (scenes = {}));
+/*
+    Name : Jowon Shin
     Version : v1.2
     Last_modification : Feb 23, 2018
     Description : added High Score Label
@@ -1986,7 +2076,7 @@ var scenes;
             this._background = new objects.Background(this.assetManager);
             this._btnPlayAgain = new objects.Button("btnPlayAgain", 320, 360);
             this._lblGameOver = new objects.Label("Game Over", "40px", "SpaceComic", "#FF0000", 320, 240, true);
-            this._lblScore = new objects.Label("High Score: ", "40px", "SpaceComic", "#FF0000", 120, 95, false);
+            this._lblScore = new objects.Label("High Score: ", "40px", "SpaceComic", "#FF0000", 100, 95, false);
             this._scoreboard = new managers.ScoreBoard;
             this.Main();
             console.log("game over");
@@ -1994,7 +2084,7 @@ var scenes;
         GameOverScene.prototype.Update = function () {
         };
         GameOverScene.prototype.Main = function () {
-            createjs.Sound.play("gameOverSound"); //must be changed
+            createjs.Sound.play("gameOverSound");
             this.addChild(this._background);
             this.addChild(this._lblGameOver);
             this.addChild(this._btnPlayAgain);
@@ -2040,6 +2130,7 @@ var scenes;
 /// <reference path="../../Scripts/scenes/play_one.ts"/>
 /// <reference path="../../Scripts/scenes/play_two.ts"/>
 /// <reference path="../../Scripts/scenes/play_three.ts"/>
+/// <reference path="../../Scripts/scenes/complete.ts"/>
 /// <reference path="../../Scripts/scenes/gameover.ts"/>
 /*
     Name : Dongwan Kim, Jowon Shin, Changmin Shin
@@ -2157,12 +2248,13 @@ var scenes;
         { id: "backgroundSound", src: "./Assets/sounds/background.mp3" },
         { id: "missileSound", src: "./Assets/sounds/missileSound.mp3" },
         { id: "warningSound", src: "./Assets/sounds/warningSound.mp3" },
-        { id: "bazoozaSound", src: "./Assets/sounds/bazookaSound.mp3" },
+        { id: "bazookaSound", src: "./Assets/sounds/bazookaSound.mp3" },
         { id: "crashSound", src: "./Assets/sounds/crashSound.mp3" },
         { id: "tadaSound", src: "./Assets/sounds/tada.mp3" },
         { id: "gettingItemSound", src: "./Assets/sounds/gettingItem.wav" },
         { id: "attackSound", src: "./Assets/sounds/attackSound.mp3" },
         { id: "levelCompleteSound", src: "./Assets/sounds/levelCompleteSound.mp3" },
+        { id: "storySound", src: "./Assets/sounds/storySound.mp3" },
         { id: "gameOverSound", src: "./Assets/sounds/gameOverSound.mp3" }
     ];
     //preload Assets
@@ -2228,6 +2320,9 @@ var scenes;
                 break;
             case config.Scene.GAMEOVER:
                 currentScene = new scenes.GameOverScene();
+                break;
+            case config.Scene.COMPLETE:
+                currentScene = new scenes.CompleteScene();
                 break;
         }
         currentState = managers.Game.currentScene;

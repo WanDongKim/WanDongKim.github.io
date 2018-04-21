@@ -124,12 +124,13 @@
         { id: "backgroundSound", src: "./Assets/sounds/background.mp3" },
         { id: "missileSound", src: "./Assets/sounds/missileSound.mp3" },
         { id: "warningSound", src: "./Assets/sounds/warningSound.mp3" },
-        { id: "bazoozaSound", src: "./Assets/sounds/bazookaSound.mp3" },
-        { id: "crashSound", src: "./Assets/sounds/crashSound.mp3" }, //temporary sound
+        { id: "bazookaSound", src: "./Assets/sounds/bazookaSound.mp3" },
+        { id: "crashSound", src: "./Assets/sounds/crashSound.mp3" },
         { id: "tadaSound", src: "./Assets/sounds/tada.mp3" },
         { id: "gettingItemSound", src: "./Assets/sounds/gettingItem.wav" },
         { id: "attackSound", src: "./Assets/sounds/attackSound.mp3" },
         { id: "levelCompleteSound", src: "./Assets/sounds/levelCompleteSound.mp3" },
+        { id: "storySound", src: "./Assets/sounds/storySound.mp3" },
         { id: "gameOverSound", src: "./Assets/sounds/gameOverSound.mp3" }
     ];
 
@@ -209,6 +210,9 @@
                 break;
             case config.Scene.GAMEOVER:
                 currentScene = new scenes.GameOverScene();
+                break;
+            case config.Scene.COMPLETE:
+                currentScene = new scenes.CompleteScene();
                 break;
         }
         currentState = managers.Game.currentScene;
